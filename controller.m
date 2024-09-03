@@ -1,3 +1,4 @@
+%% --------------- Controller -------------------------------------------------
 tic
 % A(theta) and B(theta, dtheta) eq 8, Nakamura 1987
 %   tau = A(theta) * ddtheta + B(theta,dtheta);
@@ -16,21 +17,23 @@ dr2 = simplify(jacobian(r2, q) * dq);
 
 t = sym('t', 'real');
 
-% reference tasks
-r1o = [0.5*(1+sin(t-pi/2)); 0.8];
+% Define reference tasks
 
 T = 20;
 
+% Task 1: end effector location
 sigmoid = @(x) 1./(1+exp(-x));
 alpha = @(x) 1-sigmoid(10*(x-0.5*T));
 
 alpha2 = 1-0.5*(1+sin((pi/(0.5*T))*t-pi/2));
-r1o1 = (1-alpha2)*[1.0; 0.75] + alpha2*[  0;  0.75];
+r1o1 =     alpha2*[  0; 0.75] + (1-alpha2)*[1.0; 0.75];
 r1o2 = (1-alpha2)*[1.0; 0.75] + alpha2*[0.5;-0.15];
-r1o = r1o1*alpha(t) + r1o2*(1-alpha(t));
+r1o = r1o1*alpha(t) + r1o2*(1-alpha(t)); 
 
+% Task 2: end effector orientation
+r2o = cos(pi/2); 
 
-r2o = cos(pi/2);
+% Controller
 dr1o  = diff( r1o, t);
 ddr1o = diff(dr1o, t);
 dr2o  = diff( r2o, t);
@@ -59,7 +62,8 @@ J1fn = matlabFunction(subs(J1, param_vars, param_vals), 'Vars', {q});
 J2fn = matlabFunction(subs(J2, param_vars, param_vals), 'Vars', {q});
 
 ddtheta_o = J1pinv * h1 + (eye(3) - J1pinv*J1)*J2pinv * h2;
-ddtheta_ofn = matlabFunction(subs(ddtheta_o, param_vars, param_vals), 'Vars', {q, dq, t});
+ddtheta_ofn = matlabFunction(subs(ddtheta_o, param_vars, param_vals), ...
+    'Vars', {q, dq, t});
 
 toc
 % matrix_dot differentiates a symbolic matrix and returns a new symbolic

@@ -1,20 +1,23 @@
 %% --------------- Run Simulation ---------------------------------------------
 
+save_gif   = true;
+filename   = 'out/results.gif';
+delta_time = 0.05;
+
 ddtheta_o = @(theta, dtheta, t) pinv(J1fn(theta)) * h1fn(theta,dtheta,t) + ... 
-        (eye(3) - pinv(J1fn(theta)) *J1fn(theta)) * pinv(J2fn(theta)) * h2fn(theta,dtheta,t);
-%ddtheta_o = @(theta, dtheta, t)pinv(J1fn(theta)) * h1fn(theta,dtheta,t)
+        (eye(3) - pinv(J1fn(theta)) *J1fn(theta)) * pinv(J2fn(theta)) ...
+        * h2fn(theta,dtheta,t);
 
-%ddtheta_o = @(theta, dtheta, t) pinv(J2fn(theta)) * h2fn(theta,dtheta,t);
+% Limit input to +- 1000 Nm
+u = @(x,t) max(-1000*ones(3,1), min(1000*ones(3,1), Bfn(x(1:3),x(4:6)) +  ...
+    Afn(x(1:3))*ddtheta_o(x(1:3),x(4:6), t)));
 
-%u = @(x,t) Bfn(x(1:3),x(4:6)) + Afn(x(1:3))*[0;0;0];
-u = @(x,t) max(-1000*ones(3,1), min(1000*ones(3,1), Bfn(x(1:3),x(4:6)) + Afn(x(1:3))*ddtheta_o(x(1:3),x(4:6), t)));
-%u = @(x,t) zeros(3,1);
-
-%eqn = [p2(1); p3(1); p3(2)] == [0; 0; 0.8];
+% Find initial conditions if necessary
+%eqn = [p2(1); p3(1); p3(2)] == [0; 0; 0.75];
 %theta_init = solve(subs(eqn, param_vars, param_vals), q);
 %theta_init = double(subs(q, theta_init(1)))
 
-theta_init = [0.6369;2.1418;-1.2078];
+theta_init = [0.5977;2.2644;-1.2913];
 
 theta_0  = theta_init;
 dtheta_0 = zeros(3,1);
@@ -52,6 +55,9 @@ for i = 1:length(tout)
 
 end
 
+% storing GIF frames
+frames = [];
+
 % Plot system in real time
 while true
     t = toc;
@@ -60,6 +66,21 @@ while true
         if idx > size(tout)
             tic;
             idx = 1;
+
+            % Save GIF
+            if save_gif
+                [imind, cm] = rgb2ind(frame2im(frames(1)), 256);
+                imwrite(imind, cm, filename, 'gif', 'Loopcount', inf, ...
+                    'DelayTime', delta_time);
+        
+                for k = 2: length(frames)
+                    [imind, cm] = rgb2ind(frame2im(frames(k)), 256);
+                    imwrite(imind, cm, filename, 'gif', 'WriteMode', ...
+                        'append', 'DelayTime', delta_time);
+                end
+                return;
+            end
+
             break;
         end
     end
@@ -104,7 +125,11 @@ while true
     title('Torques');
     grid on;
 
-    pause(0.05);
+    if save_gif
+        frames = [frames getframe(gcf)];
+    end
+
+    pause(delta_time);
 end
 
 function pts = forward_kinematics(theta, l1, l2, l3)
