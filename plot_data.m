@@ -34,7 +34,7 @@ l2 = 0.43;
 l3 = 0.35;
 lt = l1 + l2 + l3;
 pts = zeros(2,4);
-fig = figure(1); grid;
+figure(1); grid;
 set(gcf, 'Position', [100 -200 1000 1000]);
 
 idx = 1;
@@ -42,8 +42,14 @@ tic;
 
 % Calculate Desired Path
 path_des = zeros(2, length(tout));
+inputs = zeros(3, length(tout));
 for i = 1:length(tout)
     path_des(:,i) = r1ofn(tout(i));
+    inputs(:,i) = u(yout(i,:)',tout(i));
+end
+
+for i = 1:length(tout)
+
 end
 
 % Plot system in real time
@@ -66,10 +72,12 @@ while true
     pts(:,4) = pts(:,3) + l3 * [cos(t1+t2+t3); sin(t1+t2+t3)];
     ref = r1ofn(t);
     clf;
+
+    subplot(3, 2, [1:4])
     plot(ref(1), ref(2),'o'); hold on;
     plot(pts(1,:), pts(2,:)); hold on;
     plot(pts(1,:), pts(2,:), 'x'); hold on;
-    plot(path_des(1,:), path_des(2,:),'--');
+    plot(path_des(1,:), path_des(2,:),'--'); hold on;
 
     title(sprintf('Time = %.2f, Energy = %.2e',t, Hfn(yout(idx,:)')));
     xlabel('x');
@@ -77,6 +85,24 @@ while true
     xlim([-0.2 1.4]);
     ylim([-0.6 1]);
     grid;
+
+    subplot(3, 2, [5 6]);
+    plot(tout, inputs(1,:),'r'); hold on;
+    plot(tout, inputs(2,:),'g'); hold on;
+    plot(tout, inputs(3,:),'b'); hold on;
+
+    in_now =u(yout(idx,:)',tout(idx));
+    plot(tout(idx), in_now(1),'ro');
+    plot(tout(idx), in_now(2),'go');
+    plot(tout(idx), in_now(3),'bo');
+    xline(t);
+
+    legend('\tau_1','\tau_2','\tau_3');
+    xlabel('t [s]');
+    ylabel('\tau [Nm]')
+
+    title('Torques');
+    grid on;
 
     pause(0.05);
 end

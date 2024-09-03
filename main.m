@@ -21,17 +21,27 @@ p1 =  0 + l1 * [cos(              theta1); sin(              theta1)];
 p2 = p1 + l2 * [cos(       theta1+theta2); sin(       theta1+theta2)];
 p3 = p2 + l3 * [cos(theta1+theta2+theta3); sin(theta1+theta2+theta3)];
 
-v1 = jacobian(p1, q) * dq;
-v2 = jacobian(p2, q) * dq;
-v3 = jacobian(p3, q) * dq;
-
-% Kinetic energy
-K = 0.5 * m1 * v1'*v1 + 0.5 * m2 * v2'*v2 + 0.5 * m3 * v3'*v3;
-
-% Potential energy, center off mass in the middle of each link.
+% translational kinetic energy
 pm1 = 0.5 * p1;
 pm2 = 0.5 * (p1 + p2);
 pm3 = 0.5 * (p2 + p3);
+
+v1 = jacobian(pm1, q) * dq;
+v2 = jacobian(pm2, q) * dq;
+v3 = jacobian(pm3, q) * dq;
+
+I1 = m1 * l1 * l1 / 12; 
+I2 = m2 * l2 * l2 / 12;
+I3 = m3 * l3 * l3 / 12;
+
+w1 = dtheta1;
+w2 = w1 + dtheta2;
+w3 = w2 + dtheta3;
+% Kinetic energy
+K = 0.5 * m1 * v1'*v1 + 0.5 * m2 * v2'*v2 + 0.5 * m3 * v3'*v3 + ...
+    0.5 * I1 *  w1*w1 + 0.5 * I2 *  w2*w2 + 0.5 * I3 *  w3*w3;
+
+% Potential energy, center off mass in the middle of each link.
 U = g * (m1 * pm1(2) + m2 * pm2(2) + m3 * pm3(2) );
 % Hamiltonian
 H = K + U;

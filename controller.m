@@ -25,8 +25,8 @@ sigmoid = @(x) 1./(1+exp(-x));
 alpha = @(x) 1-sigmoid(10*(x-0.5*T));
 
 alpha2 = 1-0.5*(1+sin((pi/(0.5*T))*t-pi/2));
-r1o1 = (1-alpha2)*[1; 0.8] + alpha2*[  0;  0.8];
-r1o2 = (1-alpha2)*[1; 0.8] + alpha2*[0.5;-0.15];
+r1o1 = (1-alpha2)*[1.0; 0.75] + alpha2*[  0;  0.75];
+r1o2 = (1-alpha2)*[1.0; 0.75] + alpha2*[0.5;-0.15];
 r1o = r1o1*alpha(t) + r1o2*(1-alpha(t));
 
 
@@ -46,7 +46,7 @@ J1pinv = simplify(pinv(J1));
 J2pinv = simplify(pinv(J2));
 
 G11 =  10;
-G21 =  10;
+G21 =  50;
 G12 =  20;
 G22 = 100;
 h1 = simplify(- dJ1 * dq + ddr1o + G11*(dr1o - dr1) + G21*(r1o - r1));
